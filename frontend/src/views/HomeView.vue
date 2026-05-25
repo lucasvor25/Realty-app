@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import Button from "../components/Button.vue";
 import db from "../../db.json";
 
@@ -11,15 +11,28 @@ interface Imovel {
 }
 const data = ref<Imovel[]>(db.properties);
 const search = ref("");
+const activeSearch = ref("");
+
+function updateActiveSearch() {
+  activeSearch.value = search.value;
+}
+
+function removeAccents(str: string) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 const filtered = computed(() => {
-  if (!search.value) return data.value;
-  return data.value.filter(
-    (imovel: any) =>
-      imovel.city.toLowerCase().includes(search.value.toLowerCase()) ||
-      imovel.type.toLowerCase().includes(search.value.toLowerCase()) ||
-      imovel.neighborhood.toLowerCase().includes(search.value.toLowerCase()),
-  );
+  const term = activeSearch.value.toLowerCase();
+  return data.value.filter((imovel) => {
+    return (
+      removeAccents(imovel.city.toLowerCase()).includes(term) ||
+      removeAccents(imovel.type.toLowerCase()).includes(term) ||
+      removeAccents(imovel.neighborhood.toLowerCase()).includes(term)
+    );
+  });
 });
+
+watch(filtered, (val) => console.log(val, "filtered"));
 </script>
 
 <template>
@@ -38,7 +51,7 @@ const filtered = computed(() => {
         placeholder="Buscar por cidade ou tipo..."
         class="bg-white px-4 py-2 rounded-md border text-sm"
       />
-      <Button msg="Buscar" />
+      <Button msg="Buscar" @pressed="updateActiveSearch" />
     </div>
   </section>
 </template>
