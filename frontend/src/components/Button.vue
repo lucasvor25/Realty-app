@@ -1,16 +1,24 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from "vue";
+
+const props = defineProps<{
   msg: string;
+  variant?: "primary" | "secondary";
 }>();
 
 const emit = defineEmits(["pressed"]);
+
+const buttonClass = computed(() => ({
+  "bg-blue-600 text-white": props.variant !== "secondary",
+  "bg-white text-blue-600": props.variant === "secondary",
+}));
 </script>
 
 <template>
   <button
     @click="emit('pressed')"
-    class="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm cursor-pointer"
+    :class="[buttonClass, 'px-4 py-1.5 rounded-md text-sm cursor-pointer']"
   >
-    {{ msg }}
+    {{ props.msg }}
   </button>
 </template>
