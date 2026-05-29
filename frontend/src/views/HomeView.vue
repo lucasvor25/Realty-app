@@ -9,6 +9,8 @@ import {
   DoorOpen,
   SquareUser,
 } from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 interface Imovel {
   type: string;
@@ -24,9 +26,9 @@ interface Imovel {
   featured: boolean;
 }
 
+const toast = useToast();
 const data = ref<Imovel[]>(db.properties);
 const search = ref("");
-const activeSearch = ref("");
 
 const icons: Record<string, any> = {
   casa: House,
@@ -48,8 +50,31 @@ const iconColors: Record<string, string> = {
   loft: "text-rose-600 bg-rose-50",
 };
 
+const router = useRouter();
+
+const availableFields = ["title", "city", "neighborhood", "type", "status"];
+
+function removeAccents(str: string) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function updateActiveSearch() {
-  activeSearch.value = search.value;
+  if (!search.value.trim()) return;
+  const term = search.value;
+
+  const isAvailableInData = data.value.some((imovel: Imovel) =>
+    availableFields.some((field) => {
+      return removeAccents(imovel[field as keyof Imovel].toString())
+        .toLowerCase()
+        .includes(removeAccents(term).toLowerCase());
+    }),
+  );
+
+  if (isAvailableInData) {
+    router.push({ path: "/imoveis", query: { search: term } });
+  } else {
+    toast.error("Nenhum imóvel encontrado para essa busca");
+  }
 }
 
 const filtered = computed(() => {
@@ -79,7 +104,11 @@ const statusColors: Record<string, string> = {
         placeholder="Buscar por cidade ou tipo..."
         class="bg-white px-4 py-2 rounded-md border text-sm"
       />
-      <Button msg="Buscar" @pressed="updateActiveSearch" />
+      <Button
+        msg="Buscar"
+        :disabled="!search.trim()"
+        @pressed="updateActiveSearch"
+      />
     </div>
   </section>
   <!-- <div> -->
