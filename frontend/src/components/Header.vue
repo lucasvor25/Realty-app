@@ -7,7 +7,7 @@ function irParaAdmin() {
 </script>
 
 <template>
-  <header class="flex items-center justify-between px-8 h-14">
+  <header class="flex items-center justify-between h-14">
     <div>
       <h1>Realty app</h1>
     </div>
